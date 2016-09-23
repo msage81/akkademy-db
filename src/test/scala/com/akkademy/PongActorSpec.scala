@@ -2,7 +2,7 @@ package com.akkademy
 
 import akka.actor.Actor.Receive
 import akka.actor.Status.Failure
-import akka.actor.{Actor, ActorSystem}
+import akka.actor.{Actor, ActorSelection, ActorSystem, Props}
 import akka.testkit.TestActorRef
 import com.akkademy.messages.SetRequest
 import org.scalatest.{BeforeAndAfterEach, FunSpecLike, Matchers}
@@ -28,11 +28,14 @@ class PongActorSpec extends FunSpecLike with Matchers /*with BeforeAndAfterEach 
     }
     describe("when sent a non-Ping message") {
       it("should result in an exception") {
-        val actorRef = TestActorRef(new PongActor) // TestActorRef synchronous
+        TestActorRef(new PongActor,"HotStuffAlso")
+        val actorSelection = system.actorSelection("/user/HotStuffAlso") // lookup an ActorSelection
+                                                                        // for a previously created Actor
+
         val anonActor = TestActorRef(new Actor{
           var list = ListBuffer[Any]()
           override def receive: Receive = {
-            case "start" => actorRef ! "Ouch"
+            case "start" => actorSelection ! "Ouch"
             case message:String => list +=  message
             case failure => list += failure
           }
@@ -42,6 +45,7 @@ class PongActorSpec extends FunSpecLike with Matchers /*with BeforeAndAfterEach 
 
       }
     }
+
   }
 }
 
